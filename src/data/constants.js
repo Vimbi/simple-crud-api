@@ -1,0 +1,15 @@
+const RESPONSE_MESSAGES = {
+  BAD_REQUEST: '400 Bad Request',
+  NOT_FOUND: '404 Not found',
+  INTERNAL_SERVER_ERROR: '500 Internal Server Error',
+};
+
+const STATUS_CODES = {
+  OK: 200,
+  CREATED: 201,
+  BAD_REQUEST: 400,
+  NOT_FOUND: 404,
+  INTERNAL_SERVER_ERROR: 500,
+}
+
+module.exports = { RESPONSE_MESSAGES, STATUS_CODES };

@@ -3,10 +3,13 @@
   "version": "1.0.0",
   "description": "",
   "main": "src/server.js",
+  "engines": {
+    "node": ">=16.13.0"
+  },
   "scripts": {
-    "start": "webpack serve --open --config webpack.dev.js",
+    "start": "node dist/main.bundle.js",
     "build": "webpack --config webpack.prod.js",
-    "prod": "webpack",
+    "prod": "webpack --env production && npm run start",
     "dev": "webpack serve --env develop",
     "watch": "nodemon src/server.js",
     "test": "jest"

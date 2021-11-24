@@ -3,7 +3,7 @@ const Person = require('../models/personModel');
 
 const getAll = async () => persons;
 
-const addPerson = async (data) => {
+const addPerson = (data) => {
   let person = '';
   if (Object.prototype.hasOwnProperty.call(data, 'name') && Object.prototype.hasOwnProperty.call(data, 'age') && Object.prototype.hasOwnProperty.call(data, 'hobbies')) {
     person = new Person(data);

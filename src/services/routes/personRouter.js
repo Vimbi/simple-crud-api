@@ -4,21 +4,29 @@ const {
   STATUS_CODES
 } = require('../../data/constants');
 const createResponse = require('../createResponse/createResponse');
+const safelyParseJSON = require('../../utils/safelyParseJSON');
 
 const personRouter = async (req, res) => {
+  const urlSplit = req.url.split('/');
+  console.log(urlSplit);
 
-  switch (req.url) {
-    case '/person':
-    case '/person/':
-      try {
-        if (req.method === 'GET') {
-          const persons = await personController.getAll();
+  if (urlSplit[1] !== 'person' || urlSplit.length > 4 || urlSplit.length < 2) {
+    createResponse(res, STATUS_CODES.NOT_FOUND, {
+      message: RESPONSE_MESSAGES.NOT_FOUND
+    });
+  } else if (req.url === '/person' || req.url === '/person/') {
+    try {
+      let persons;
+      let person;
+      switch (req.method) {
+        case 'GET':
+          persons = await personController.getAll();
           createResponse(res, STATUS_CODES.OK, persons);
-        } else if (req.method === 'POST') {
-          let person = '';
+          break;
+        case 'POST':
           req
             .on('data', async (data) => {
-              person = await personController.addPerson(JSON.parse(data));
+              person = await personController.addPerson(safelyParseJSON(data));
             })
             .on('end', async () => {
               if (person) {
@@ -29,24 +37,32 @@ const personRouter = async (req, res) => {
                 })
               }
             })
-        } else {
-          createResponse(res, STATUS_CODES.NOT_FOUND, {
-            message: RESPONSE_MESSAGES.NOT_FOUND
+          break;
+        default:
+          createResponse(res, STATUS_CODES.INTERNAL_SERVER_ERROR, {
+            message: RESPONSE_MESSAGES.INTERNAL_SERVER_ERROR
           });
-        }
-      } catch (error) { // TODO need to catch Syntax Error
-        console.log(error.name);
-        createResponse(res, STATUS_CODES.INTERNAL_SERVER_ERROR, {
-          message: RESPONSE_MESSAGES.BAD_REQUEST
-        });
+          break;
       }
-      break;
-
-    default:
-      createResponse(res, STATUS_CODES.NOT_FOUND, {
-        message: RESPONSE_MESSAGES.NOT_FOUND
+    } catch (error) {
+      createResponse(res, STATUS_CODES.INTERNAL_SERVER_ERROR, {
+        message: RESPONSE_MESSAGES.INTERNAL_SERVER_ERROR
       });
-      break;
+    }
+  } else {
+    switch (req.method) {
+      case 'GET':
+        break;
+      case 'PUT':
+        break;
+      case 'DELETE':
+        break;
+      default:
+        createResponse(res, STATUS_CODES.INTERNAL_SERVER_ERROR, {
+          message: RESPONSE_MESSAGES.INTERNAL_SERVER_ERROR
+        });
+        break;
+    }
   }
 }
 

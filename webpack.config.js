@@ -19,6 +19,8 @@ const path = require('path');
 //   }
 // };
 
+webpack ./src/server.js --config webpack.prod.js node server
+
 module.exports = (argv) => ({
   watch: true,
   mode: argv.mode,

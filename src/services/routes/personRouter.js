@@ -1,3 +1,6 @@
+const {
+  validate
+} = require('uuid');
 const personController = require('../controllers/personController');
 const {
   RESPONSE_MESSAGES,
@@ -11,18 +14,19 @@ const personRouter = async (req, res) => {
   console.log(urlSplit);
 
   if (urlSplit[1] !== 'person' || urlSplit.length > 4 || urlSplit.length < 2) {
-    createResponse(res, STATUS_CODES.NOT_FOUND, {
+    return createResponse(res, STATUS_CODES.NOT_FOUND, {
       message: RESPONSE_MESSAGES.NOT_FOUND
     });
-  } else if (req.url === '/person' || req.url === '/person/') {
+  };
+
+  if (req.url === '/person' || req.url === '/person/') {
     try {
       let persons;
       let person;
       switch (req.method) {
         case 'GET':
           persons = await personController.getAll();
-          createResponse(res, STATUS_CODES.OK, persons);
-          break;
+          return createResponse(res, STATUS_CODES.OK, persons);
         case 'POST':
           req
             .on('data', async (data) => {
@@ -30,38 +34,70 @@ const personRouter = async (req, res) => {
             })
             .on('end', async () => {
               if (person) {
-                createResponse(res, STATUS_CODES.CREATED, person);
-              } else {
-                createResponse(res, STATUS_CODES.BAD_REQUEST, {
-                  message: RESPONSE_MESSAGES.BAD_REQUEST
-                })
+                return createResponse(res, STATUS_CODES.CREATED, person);
               }
+              return createResponse(res, STATUS_CODES.BAD_REQUEST, {
+                message: RESPONSE_MESSAGES.BAD_REQUEST
+              })
             })
           break;
         default:
-          createResponse(res, STATUS_CODES.INTERNAL_SERVER_ERROR, {
+          return createResponse(res, STATUS_CODES.INTERNAL_SERVER_ERROR, {
             message: RESPONSE_MESSAGES.INTERNAL_SERVER_ERROR
           });
-          break;
       }
     } catch (error) {
-      createResponse(res, STATUS_CODES.INTERNAL_SERVER_ERROR, {
+      return createResponse(res, STATUS_CODES.INTERNAL_SERVER_ERROR, {
         message: RESPONSE_MESSAGES.INTERNAL_SERVER_ERROR
       });
     }
   } else {
+    let person;
+    const personId = urlSplit[2];
+
+    if (!validate(personId)) {
+      return createResponse(res, STATUS_CODES.BAD_REQUEST, {
+        message: RESPONSE_MESSAGES.BAD_REQUEST
+      });
+    }
+    // TODO TRY CATCH, TEST DELETE METHOD
     switch (req.method) {
       case 'GET':
-        break;
+        person = await personController.getPerson(personId);
+        if (person) {
+          return createResponse(res, STATUS_CODES.OK, person);
+        }
+        return createResponse(res, STATUS_CODES.NOT_FOUND, {
+          message: RESPONSE_MESSAGES.NOT_FOUND
+        });
       case 'PUT':
+        req
+          .on('data', async (data) => {
+            person = await personController.updatePerson(personId, safelyParseJSON(data));
+          })
+          .on('end', async () => {
+            if (person) {
+              return createResponse(res, STATUS_CODES.OK, person);
+            }
+            return createResponse(res, STATUS_CODES.NOT_FOUND, {
+              message: RESPONSE_MESSAGES.NOT_FOUND
+            })
+          })
         break;
       case 'DELETE':
-        break;
+        person = await personController.deletePerson(personId);
+        if (person) {
+          return createResponse(res, STATUS_CODES.NO_CONTENT, {
+            message: RESPONSE_MESSAGES.NO_CONTENT
+          });
+        }
+        return createResponse(res, STATUS_CODES.NOT_FOUND, {
+          message: RESPONSE_MESSAGES.NOT_FOUND
+        })
       default:
-        createResponse(res, STATUS_CODES.INTERNAL_SERVER_ERROR, {
+        return createResponse(res, STATUS_CODES.INTERNAL_SERVER_ERROR, {
           message: RESPONSE_MESSAGES.INTERNAL_SERVER_ERROR
         });
-        break;
     }
   }
 }

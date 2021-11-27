@@ -11,7 +11,6 @@ const safelyParseJSON = require('../../utils/safelyParseJSON');
 
 const personRouter = async (req, res) => {
   const urlSplit = req.url.split('/');
-  console.log(urlSplit);
 
   if (urlSplit[1] !== 'person' || urlSplit.length > 4 || urlSplit.length < 2) {
     return createResponse(res, STATUS_CODES.NOT_FOUND, {
@@ -30,9 +29,15 @@ const personRouter = async (req, res) => {
         case 'POST':
           req
             .on('data', async (data) => {
-              person = await personController.addPerson(safelyParseJSON(data));
+              person = safelyParseJSON(data);
             })
             .on('end', async () => {
+              if (!person) {
+                return createResponse(res, STATUS_CODES.INTERNAL_SERVER_ERROR, {
+                  message: RESPONSE_MESSAGES.INTERNAL_SERVER_ERROR
+                });
+              }
+              person = await personController.addPerson(person);
               if (person) {
                 return createResponse(res, STATUS_CODES.CREATED, person);
               }
@@ -52,52 +57,63 @@ const personRouter = async (req, res) => {
       });
     }
   } else {
-    let person;
-    const personId = urlSplit[2];
+    try {
+      let person;
+      const personId = urlSplit[2];
 
-    if (!validate(personId)) {
-      return createResponse(res, STATUS_CODES.BAD_REQUEST, {
-        message: RESPONSE_MESSAGES.BAD_REQUEST
-      });
-    }
-    // TODO TRY CATCH, TEST DELETE METHOD
-    switch (req.method) {
-      case 'GET':
-        person = await personController.getPerson(personId);
-        if (person) {
-          return createResponse(res, STATUS_CODES.OK, person);
-        }
-        return createResponse(res, STATUS_CODES.NOT_FOUND, {
-          message: RESPONSE_MESSAGES.NOT_FOUND
+      if (!validate(personId)) {
+        return createResponse(res, STATUS_CODES.BAD_REQUEST, {
+          message: RESPONSE_MESSAGES.BAD_REQUEST
         });
-      case 'PUT':
-        req
-          .on('data', async (data) => {
-            person = await personController.updatePerson(personId, safelyParseJSON(data));
-          })
-          .on('end', async () => {
-            if (person) {
-              return createResponse(res, STATUS_CODES.OK, person);
-            }
-            return createResponse(res, STATUS_CODES.NOT_FOUND, {
-              message: RESPONSE_MESSAGES.NOT_FOUND
-            })
-          })
-        break;
-      case 'DELETE':
-        person = await personController.deletePerson(personId);
-        if (person) {
-          return createResponse(res, STATUS_CODES.NO_CONTENT, {
-            message: RESPONSE_MESSAGES.NO_CONTENT
+      }
+      switch (req.method) {
+        case 'GET':
+          person = await personController.getPerson(personId);
+          if (person) {
+            return createResponse(res, STATUS_CODES.OK, person);
+          }
+          return createResponse(res, STATUS_CODES.NOT_FOUND, {
+            message: RESPONSE_MESSAGES.NOT_FOUND
           });
-        }
-        return createResponse(res, STATUS_CODES.NOT_FOUND, {
-          message: RESPONSE_MESSAGES.NOT_FOUND
-        })
-      default:
-        return createResponse(res, STATUS_CODES.INTERNAL_SERVER_ERROR, {
-          message: RESPONSE_MESSAGES.INTERNAL_SERVER_ERROR
-        });
+        case 'PUT':
+          req
+            .on('data', async (data) => {
+              person = safelyParseJSON(data);
+            })
+            .on('end', async () => {
+              if (!person) {
+                return createResponse(res, STATUS_CODES.INTERNAL_SERVER_ERROR, {
+                  message: RESPONSE_MESSAGES.INTERNAL_SERVER_ERROR
+                });
+              }
+              person = await personController.updatePerson(personId, person);
+              if (person) {
+                return createResponse(res, STATUS_CODES.OK, person);
+              }
+              return createResponse(res, STATUS_CODES.NOT_FOUND, {
+                message: RESPONSE_MESSAGES.NOT_FOUND
+              })
+            })
+          break;
+        case 'DELETE':
+          person = await personController.deletePerson(personId);
+          if (person) {
+            return createResponse(res, STATUS_CODES.NO_CONTENT, {
+              message: RESPONSE_MESSAGES.NO_CONTENT
+            });
+          }
+          return createResponse(res, STATUS_CODES.NOT_FOUND, {
+            message: RESPONSE_MESSAGES.NOT_FOUND
+          })
+        default:
+          return createResponse(res, STATUS_CODES.INTERNAL_SERVER_ERROR, {
+            message: RESPONSE_MESSAGES.INTERNAL_SERVER_ERROR
+          });
+      }
+    } catch (error) {
+      return createResponse(res, STATUS_CODES.INTERNAL_SERVER_ERROR, {
+        message: RESPONSE_MESSAGES.INTERNAL_SERVER_ERROR
+      });
     }
   }
 }

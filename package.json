@@ -7,11 +7,8 @@
     "node": ">=16.13.0"
   },
   "scripts": {
-    "start": "node dist/main.bundle.js",
-    "build": "webpack --config webpack.prod.js",
-    "prod": "webpack --env production && npm run start",
-    "dev": "webpack serve --env develop",
-    "watch": "nodemon src/server.js",
+    "start:prod": "webpack && node dist/main.bundle.js",
+    "start:dev": "nodemon src/server.js",
     "test": "jest"
   },
   "repository": {

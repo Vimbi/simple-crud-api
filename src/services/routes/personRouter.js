@@ -98,9 +98,7 @@ const personRouter = async (req, res) => {
         case 'DELETE':
           person = await personController.deletePerson(personId);
           if (person) {
-            return createResponse(res, STATUS_CODES.NO_CONTENT, {
-              message: RESPONSE_MESSAGES.NO_CONTENT
-            });
+            return createResponse(res, STATUS_CODES.NO_CONTENT);
           }
           return createResponse(res, STATUS_CODES.NOT_FOUND, {
             message: RESPONSE_MESSAGES.NOT_FOUND

@@ -1,8 +1,6 @@
 const request = require('supertest');
-require('dotenv').config();
 
-const port = process.env.PORT || 3000;
-const app = require('../../src/app');
+const app = require('../src/app');
 
 const NEW_PERSON = {
   name: 'Test',
@@ -15,7 +13,7 @@ const UPDATE_PERSON = {
   hobbies: []
 };
 
-describe('Request', () => {
+describe('Successful request', () => {
   let personId;
 
   it('get /person should return empty array', async () => {
@@ -36,7 +34,7 @@ describe('Request', () => {
         personId = response.body.id;
         expect(response.body).toMatchObject(NEW_PERSON);
       })
-  })
+  });
 
   it('get /person/id should return person by id', async () => {
     await request(app)
@@ -76,3 +74,44 @@ describe('Request', () => {
       .expect(404);
   });
 });
+
+describe('Unsuccessful request 400', () => {
+
+  it('get /person/123 should return 400', async () => {
+    await request(app)
+      .get('/person/123')
+      .expect('Content-Type', /json/)
+      .expect(400, { message: '400 Bad Request' })
+  });
+
+  it('post /person without body should return 400', async () => {
+    await request(app)
+      .post('/person')
+      .set('Accept', 'application/json')
+      .send({})
+      .expect('Content-Type', /json/)
+      .expect(400, { message: '400 Bad Request' })
+  });
+});
+
+describe('Unsuccessful request 404', () => {
+
+  it('get /user/e15aefaa-6f8b-45d0-8383-fbb26272f960 should return 404', async () => {
+    await request(app)
+      .get('/user/e15aefaa-6f8b-45d0-8383-fbb26272f960')
+      .expect('Content-Type', /json/)
+      .expect(404, { message: '404 Not found' })
+  });
+});
+
+describe('Unsuccessful request 500', () => {
+
+  it('post /person without body should return 500', async () => {
+    await request(app)
+      .post('/person')
+      .set('Accept', 'application/json')
+      .expect('Content-Type', /json/)
+      .expect(500, { message: '500 Internal Server Error' })
+  });
+});
+

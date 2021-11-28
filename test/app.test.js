@@ -96,9 +96,16 @@ describe('Unsuccessful request 400', () => {
 
 describe('Unsuccessful request 404', () => {
 
-  it('get /user/e15aefaa-6f8b-45d0-8383-fbb26272f960 should return 404', async () => {
+  it('get /person/e15aefaa-6f8b-45d0-8383-fbb26272f960 should return 404', async () => {
     await request(app)
-      .get('/user/e15aefaa-6f8b-45d0-8383-fbb26272f960')
+      .get('/person/e15aefaa-6f8b-45d0-8383-fbb26272f960')
+      .expect('Content-Type', /json/)
+      .expect(404, { message: '404 Not found' })
+  });
+
+  it('get /somePage/somePage/somePage should return 404', async () => {
+    await request(app)
+      .get('/somePage/somePage/somePage')
       .expect('Content-Type', /json/)
       .expect(404, { message: '404 Not found' })
   });
@@ -112,6 +119,12 @@ describe('Unsuccessful request 500', () => {
       .set('Accept', 'application/json')
       .expect('Content-Type', /json/)
       .expect(500, { message: '500 Internal Server Error' })
+  });
+
+  it('patch /person should return 500', async () => {
+    await request(app)
+      .patch(`/person/`)
+      .expect(500, { message: '500 Internal Server Error' });
   });
 });
 

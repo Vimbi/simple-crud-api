@@ -20,7 +20,6 @@ const getPerson = (data) => {
 
 const updatePerson = (personId, data) => {
   let searchedPerson = persons.find(person => person.id === personId);
-  // const { name, age, hobbies } = data;
   if (searchedPerson && data) {
     searchedPerson = { ...searchedPerson, ...data };
     persons[personId] = searchedPerson;

@@ -9,6 +9,7 @@ const {
 const createResponse = require('../createResponse/createResponse');
 const safelyParseJSON = require('../../utils/safelyParseJSON');
 
+// eslint-disable-next-line consistent-return
 const personRouter = async (req, res) => {
   const urlSplit = req.url.split('/');
 
